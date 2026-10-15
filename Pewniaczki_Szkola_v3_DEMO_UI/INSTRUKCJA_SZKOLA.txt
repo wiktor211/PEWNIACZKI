@@ -1,0 +1,17 @@
+PEWNIACZKI v3 — URUCHOMIENIE NA KOMPUTERZE SZKOLNYM
+====================================================
+1. Zainstaluj Node.js LTS i XAMPP, uruchom Apache i MySQL.
+2. Utworz baze pewniaczki oraz konto pewniaczki_app w phpMyAdmin (patrz database/).
+3. Uruchom instalacja.bat.
+4. Ustaw w backend/.env lokalne haslo MySQL.
+5. Uruchom przygotuj_baze.bat. Haslo admina ustaw indywidualnie.
+6. Uruchom uruchom.bat, otworz http://localhost:5173.
+
+Uwaga: bazy MySQL nie przenosi sie przez samo kopiowanie folderu!
+Strukture odtworzysz migracjami Prisma, dane probne skryptem seed.
+
+Wszystkie liczby w zestawieniach to FIKCYJNE DANE DEMONSTRACYJNE.
+Nie sa to aktualne ani archiwalne oferty bukmacherow.
+Ekran wzorowany na grafice referencyjnej.
+
+W razie bledow sprawdz README.md.

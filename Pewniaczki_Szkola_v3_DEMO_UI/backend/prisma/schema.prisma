@@ -1,0 +1,121 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Sport {
+  id       Int      @id @default(autoincrement())
+  name     String   @unique @db.VarChar(80)
+  slug     String   @unique @db.VarChar(80)
+  leagues  League[]
+  teams    Team[]
+  events   Event[]
+  @@map("sports")
+}
+
+model League {
+  id           Int       @id @default(autoincrement())
+  externalId   String    @unique @db.VarChar(50)
+  name         String    @db.VarChar(120)
+  country      String?   @db.VarChar(100)
+  sportId      Int
+  lastSyncedAt DateTime?
+  sport        Sport     @relation(fields: [sportId], references: [id])
+  events       Event[]
+  syncLogs     SyncLog[]
+  @@index([sportId])
+  @@map("leagues")
+}
+
+model Team {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(160)
+  sportId     Int
+  sport       Sport    @relation(fields: [sportId], references: [id])
+  homeEvents  Event[]  @relation("HomeTeam")
+  awayEvents  Event[]  @relation("AwayTeam")
+  @@unique([sportId, name])
+  @@map("teams")
+}
+
+model Event {
+  id          Int       @id @default(autoincrement())
+  externalId  String    @unique @db.VarChar(90)
+  sportId     Int
+  leagueId    Int
+  homeTeamId  Int
+  awayTeamId  Int
+  startAt     DateTime
+  status      String    @default("scheduled") @db.VarChar(32)
+  venue       String?   @db.VarChar(160)
+  source      String    @default("demo") @db.VarChar(30)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  sport       Sport     @relation(fields: [sportId], references: [id])
+  league      League    @relation(fields: [leagueId], references: [id])
+  homeTeam    Team      @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam    Team      @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  favorites   Favorite[]
+  @@index([startAt])
+  @@index([leagueId, startAt])
+  @@index([sportId, startAt])
+  @@map("events")
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement())
+  eventId   Int
+  userId    Int?
+  note      String?  @db.VarChar(250)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([userId, eventId])
+  @@index([eventId])
+  @@map("favorites")
+}
+
+model SyncLog {
+  id        Int      @id @default(autoincrement())
+  leagueId  Int
+  status    String   @db.VarChar(20)
+  received  Int      @default(0)
+  imported  Int      @default(0)
+  skipped   Int      @default(0)
+  error     String?  @db.VarChar(250)
+  createdAt DateTime @default(now())
+  league    League   @relation(fields: [leagueId], references: [id])
+  @@index([leagueId, createdAt])
+  @@map("sync_logs")
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  username     String    @unique @db.VarChar(40)
+  email        String    @unique @db.VarChar(190)
+  passwordHash String    @db.VarChar(120)
+  role         String    @default("USER") @db.VarChar(10)
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  sessions     Session[]
+  favorites    Favorite[]
+  @@map("users")
+}
+
+model Session {
+  id        Int      @id @default(autoincrement())
+  tokenHash String   @unique @db.Char(64)
+  userId    Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
